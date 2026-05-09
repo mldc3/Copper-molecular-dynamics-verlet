@@ -495,7 +495,7 @@ unit_vectors = calcular_distancias_periodicas_vector(posiciones_fcc, L)[1]
 F_vect, F_neta= vector_fuerza(F_modulo, unit_vectors)
 Plot3D_quiver(posiciones_fcc, F_neta, E_por_atomo)
 # Guardar trayectoria para visualización
-traj_path = save_to_film(pos_t, np.arange(N_pasos), len(posiciones_fcc), name='Film_Cu_establepasos500T800')
+traj_path = save_to_film(pos_t, np.arange(N_pasos), len(posiciones_fcc), name='Film_Cu_estable_300K_1000pasos')
 print(f"Trayectoria guardada en '{traj_path}'")
 
 
@@ -857,4 +857,3 @@ if __name__ == "__main__":
     main_experimento_dt()
     main_experimento_tamano()
     
-
