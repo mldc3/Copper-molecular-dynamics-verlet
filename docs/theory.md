@@ -231,7 +231,7 @@ A direct pair calculation scales as $O(N^2)$. Since Lennard-Jones decays quickly
 A small cutoff is faster but less accurate. A large cutoff includes more neighbours but costs more. With periodic boundary conditions, the cutoff must satisfy
 
 $$
-r_c<\frac12\min(L_x,L_y,L_z).
+r_c&lt;\frac12\min(L_x,L_y,L_z).
 $$
 
 Otherwise, an atom may interact with more than one periodic image of the same neighbour.
