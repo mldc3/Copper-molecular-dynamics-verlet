@@ -269,7 +269,7 @@ With periodic boundary conditions, the simulation box is repeated in all directi
 The minimum image convention ensures that each atom interacts only with the closest periodic image of every other atom. This is valid only when the cutoff radius satisfies
 
 \[
-r_c &lt; \frac{1}{2}\min(L_x,L_y,L_z).
+r_c < \frac{1}{2}\min(L_x,L_y,L_z).
 \]
 
 When this condition is satisfied, the simulation avoids double-counting periodic images and gives a consistent approximation to an extended bulk system.
