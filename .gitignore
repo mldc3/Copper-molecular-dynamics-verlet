@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+__MACOSX/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# Generated numerical outputs
+*.xyz
+*.npy
+*.npz
+output/
+outputs/
+tmp/
+
+# Keep small example trajectory folder
+!trajectories/
+!trajectories/examples/
