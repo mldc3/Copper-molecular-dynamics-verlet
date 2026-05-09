@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
 # ------------------------------- generación de la red (práctica anterior)
 sigma=2.3151
 
@@ -397,14 +398,16 @@ def graficar_termica(energia_cinetica, energia_potencial, temperatura):
 
 def save_to_film(r,t,N, name = 'Film'):
     r = r.round(5)
-    out = open(name+'.xyz', 'w')
-    for i in range(len(t)//2): # Ajustado para guardar todos los pasos
-        out.write(f'{N}\n')
-        out.write(f'Atoms. Timestep: {int(t[2*i])}\n')
-        for j in range(N):
-            out.write(f'Cu      {r[i][j][0]}        {r[i][j][1]}        {r[i][j][2]}\n')
-    out.close()
-    return
+    output_dir = Path(__file__).resolve().parents[1] / 'trajectories' / 'examples'
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f'{name}.xyz'
+    with open(output_path, 'w') as out:
+        for i in range(len(t)//2): # Ajustado para guardar todos los pasos
+            out.write(f'{N}\n')
+            out.write(f'Atoms. Timestep: {int(t[2*i])}\n')
+            for j in range(N):
+                out.write(f'Cu      {r[i][j][0]}        {r[i][j][1]}        {r[i][j][2]}\n')
+    return output_path
 
 
 def Plot3D_quiver(cristal, vectors, V_map, label_cb = '$Potencial Lennard-Jones$'):
@@ -492,8 +495,8 @@ unit_vectors = calcular_distancias_periodicas_vector(posiciones_fcc, L)[1]
 F_vect, F_neta= vector_fuerza(F_modulo, unit_vectors)
 Plot3D_quiver(posiciones_fcc, F_neta, E_por_atomo)
 # Guardar trayectoria para visualización
-save_to_film(pos_t, np.arange(N_pasos), len(posiciones_fcc), name='Film_Cu_establepasos500T800')
-print("Trayectoria guardada en 'Film_Cu_estable.xyz'")
+traj_path = save_to_film(pos_t, np.arange(N_pasos), len(posiciones_fcc), name='Film_Cu_estable_300K_1000pasos')
+print(f"Trayectoria guardada en '{traj_path}'")
 
 
 
@@ -631,9 +634,9 @@ def main():
         })
         
         # Guardar el archivo .xyz para esta temperatura
-        nombre_archivo = f'Film_Cu_{temp}K.xyz'
-        save_to_film(pos_t, np.arange(N_pasos), len(posiciones_fcc), name=nombre_archivo)
-        print(f"Simulación a {temp} K finalizada. Trayectoria guardada en '{nombre_archivo}'")
+        nombre_archivo = f'Film_Cu_{temp}K'
+        ruta_trayectoria = save_to_film(pos_t, np.arange(N_pasos), len(posiciones_fcc), name=nombre_archivo)
+        print(f"Simulación a {temp} K finalizada. Trayectoria guardada en '{ruta_trayectoria}'")
 
     # --- Visualización de los resultados comparativos ---
     print("\n--- Generando Gráficos Comparativos ---")
@@ -854,5 +857,3 @@ if __name__ == "__main__":
     main_experimento_dt()
     main_experimento_tamano()
     
-
-
