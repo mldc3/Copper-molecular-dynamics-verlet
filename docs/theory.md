@@ -1,94 +1,274 @@
 # Theory Background: Molecular Dynamics of FCC Copper
 
-## Molecular dynamics framework
-Molecular dynamics (MD) evolves atomic positions by integrating Newton's equations for interacting particles. For particle $i$ with mass $m_i$:
+This document explains the physical and numerical background behind this molecular dynamics project. The simulation models a copper-like FCC crystal using a Lennard-Jones pair potential, periodic boundary conditions, the minimum image convention and velocity-Verlet integration.
+
+The goal is not to produce a production-grade copper potential, but to build a complete and transparent computational-physics workflow: construct a crystal, assign velocities consistent with temperature, compute forces, evolve the system and analyse thermodynamic and structural observables.
+
+---
+
+## 1. Molecular dynamics
+
+Molecular dynamics follows the microscopic trajectory of atoms by solving Newton's equations. Each atom has a position $\mathbf{r}_i(t)$ and velocity $\mathbf{v}_i(t)$. If the forces are known, the system can be advanced step by step in time.
+
+The workflow is:
+
+1. initialize atomic positions,
+2. assign initial velocities,
+3. compute forces from the potential,
+4. integrate the equations of motion,
+5. measure energy, temperature and structure.
+
+This connects microscopic mechanics with macroscopic observables. Velocities determine kinetic energy and temperature; positions determine potential energy and structural order.
+
+---
+
+## 2. Newton's equations
+
+For atom $i$,
 
 $$
-m_i\frac{d^2\mathbf{r}_i}{dt^2} = \mathbf{F}_i,
+m_i\frac{d^2\mathbf{r}_i}{dt^2}=\mathbf{F}_i.
 $$
 
-with force from the many-body potential energy surface:
+Using $\mathbf{v}_i=d\mathbf{r}_i/dt$ and $\mathbf{a}_i=d\mathbf{v}_i/dt$,
 
 $$
-\mathbf{F}_i = -\nabla_i U.
+m_i\mathbf{a}_i=\mathbf{F}_i.
 $$
 
-The method produces deterministic trajectories and connects microscopic interactions to thermodynamic observables.
-
-## Integration methods and why Verlet is used
-Time is discretized as $t_n = n\Delta t$. Classical methods such as Euler or Runge-Kutta can integrate the equations, but long MD trajectories benefit from time-reversible, symplectic-like schemes in the Verlet family.
-
-In velocity-Verlet, positions and velocities are updated as:
+If the force derives from a potential energy $U$,
 
 $$
-\mathbf{r}_{n+1} = \mathbf{r}_n + \mathbf{v}_n\Delta t + \frac{1}{2}\mathbf{a}_n\Delta t^2,
+\mathbf{F}_i=-\nabla_i U.
 $$
 
-$$
-\mathbf{v}_{n+1} = \mathbf{v}_n + \frac{\Delta t}{2}(\mathbf{a}_n + \mathbf{a}_{n+1}).
-$$
+The minus sign means that atoms accelerate in the direction in which potential energy decreases. If atoms are too close, the repulsive part of the potential pushes them apart; if they are within the attractive region, the force pulls them together.
 
-This method is second-order accurate and typically has good long-time energy behavior for conservative interactions when $\Delta t$ is sufficiently small.
+---
 
-## FCC copper lattice
-Copper crystallizes in an FCC structure in standard conditions. The FCC unit cell has four basis positions and reproduces close-packed neighbor shells that define early peaks in structural correlation functions.
+## 3. Why numerical integration is needed
 
-## Lennard-Jones interaction model
-The simulation uses the pair potential:
+For many interacting atoms, Newton's equations cannot be solved analytically. The trajectory is therefore computed at discrete times separated by a timestep $\Delta t$.
+
+A small $\Delta t$ gives better accuracy but costs more. A large $\Delta t$ is cheaper but may fail to resolve atomic vibrations, producing energy drift or instability. For atomistic simulations, a timestep of order
 
 $$
-U(r) = 4\epsilon\left[\left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6\right].
+1\,\mathrm{fs}=10^{-15}\,\mathrm{s}
 $$
 
-The radial force magnitude comes from:
+is typically appropriate.
+
+---
+
+## 4. Integration methods
+
+The Euler method is the simplest scheme:
 
 $$
-F(r) = -\frac{dU}{dr}.
+x_{n+1}=x_n+\Delta t\,f(x_n,t_n).
 $$
 
-The $r^{-12}$ term models short-range repulsion and the $r^{-6}$ term models attraction.
+It is easy to implement but only first order and usually conserves energy poorly in long simulations.
 
-## Cutoff radius
-Pair interactions are truncated at a finite cutoff $r_c$ to reduce computational cost. Only pairs with $r_{ij}<r_c$ contribute to force and potential. The choice of $r_c$ affects both efficiency and quantitative accuracy.
+Runge-Kutta methods evaluate the derivative at intermediate points and can be very accurate for general differential equations. However, they are not the standard choice for long conservative molecular dynamics because they are more expensive and not naturally optimized for long-time energy behaviour.
 
-## Periodic boundary conditions
-To approximate bulk material and reduce free-surface artifacts, the finite simulation box is periodically tiled. When a particle exits one side, its image re-enters on the opposite side.
+Leapfrog and Verlet-type methods are better adapted to classical dynamics. They are second-order, time-reversible and stable for conservative systems. This is why molecular dynamics commonly uses Verlet or velocity-Verlet.
 
-## Minimum image convention
-For each pair, the interaction uses the nearest periodic image. In a cubic box of length $L$, displacement components are wrapped as:
+---
 
-$$
-\Delta x \leftarrow \Delta x - L\,\mathrm{round}(\Delta x/L),
-$$
+## 5. Velocity-Verlet
 
-and analogously for $y,z$. Distances are then computed from the wrapped displacement vector.
-
-## Temperature and energy in MD
-Kinetic energy is:
+Velocity-Verlet updates positions and velocities explicitly. First,
 
 $$
-E_{\mathrm{kin}} = \sum_i \frac{1}{2}m_i v_i^2.
+\mathbf{r}_{n+1}
+=
+\mathbf{r}_n
++
+\mathbf{v}_n\Delta t
++
+\frac{1}{2}\mathbf{a}_n\Delta t^2.
 $$
 
-Instantaneous temperature is estimated by equipartition:
+Then the forces are recomputed at the new positions,
 
 $$
-T = \frac{2E_{\mathrm{kin}}}{3Nk_B}.
+\mathbf{a}_{n+1}=\frac{\mathbf{F}_{n+1}}{m}.
 $$
 
-Total energy is:
+Finally, velocities are updated with the average acceleration,
 
 $$
-E_{\mathrm{tot}} = E_{\mathrm{kin}} + U.
+\mathbf{v}_{n+1}
+=
+\mathbf{v}_n
++
+\frac{\Delta t}{2}
+(\mathbf{a}_n+\mathbf{a}_{n+1}).
 $$
 
-In ideal NVE dynamics, $E_{\mathrm{tot}}$ should remain approximately constant up to bounded numerical fluctuations.
+This method is useful because it gives velocities directly, so kinetic energy and temperature can be monitored. It also conserves total energy well when the timestep is sufficiently small.
 
-## NVE and NVT context
-NVE keeps particle number, volume, and total energy fixed. NVT introduces temperature control through a thermostat. This project interprets trajectories primarily in an NVE-style conservation context after initialization and velocity scaling.
+---
 
-## Radial distribution function
-The radial distribution function $g(r)$ measures shell structure and short/medium-range order. Crystalline systems show pronounced peaks at characteristic neighbor distances; higher temperature broadens peaks and can reduce long-range order.
+## 6. FCC crystal initialization
 
-## Limitations of Lennard-Jones for copper
-Lennard-Jones is useful for learning MD workflows but it is not a production-quality metallic potential for copper. Real copper bonding is better represented by many-body metallic models (for example EAM-type formulations), so quantitative predictions from this simplified model should be interpreted cautiously.
+Copper crystallizes in a face-centred cubic structure. A crystal lattice is generated by repeating a basic unit cell. In an FCC conventional cell, the basis positions are
+
+$$
+(0,0,0),\quad
+\left(\frac12,\frac12,0\right),\quad
+\left(\frac12,0,\frac12\right),\quad
+\left(0,\frac12,\frac12\right).
+$$
+
+Multiplying these fractional positions by the lattice constant $a$ gives the atomic positions inside one cell. Repeating the cell in $x$, $y$ and $z$ gives the finite simulation crystal.
+
+For an $n_x\times n_y\times n_z$ supercell,
+
+$$
+N=4n_xn_yn_z.
+$$
+
+Starting from FCC is physically meaningful because it matches the equilibrium crystal structure of copper.
+
+---
+
+## 7. Pair potentials
+
+In a pair-potential approximation, the total potential energy is
+
+$$
+U_{\mathrm{tot}}
+=
+\frac12
+\sum_{i\neq j}U(r_{ij}),
+$$
+
+where
+
+$$
+r_{ij}=|\mathbf{r}_j-\mathbf{r}_i|.
+$$
+
+The factor $1/2$ avoids double counting, since $(i,j)$ and $(j,i)$ are the same physical interaction.
+
+Pair potentials are simple and transparent, which makes them useful for educational molecular dynamics. However, they are limited for metals because metallic bonding depends on the local electronic environment.
+
+---
+
+## 8. Lennard-Jones potential
+
+The Lennard-Jones potential is
+
+$$
+U(r)=4\epsilon
+\left[
+\left(\frac{\sigma}{r}\right)^{12}
+-
+\left(\frac{\sigma}{r}\right)^6
+\right].
+$$
+
+The $r^{-12}$ term models short-range repulsion, and the $r^{-6}$ term models longer-range attraction. The parameter $\epsilon$ sets the well depth, and $\sigma$ is the distance where $U(\sigma)=0$.
+
+The minimum occurs at
+
+$$
+r_{\min}=2^{1/6}\sigma,
+$$
+
+with
+
+$$
+U(r_{\min})=-\epsilon.
+$$
+
+For the copper-like model used here, representative parameters are $\epsilon=0.167\,\mathrm{eV}$, $\sigma=2.315\,\mathrm{\AA}$ and $a=3.603\,\mathrm{\AA}$.
+
+---
+
+## 9. Force from Lennard-Jones
+
+For a pair displacement $\mathbf{r}_{ij}$,
+
+$$
+\mathbf{F}_{ij}
+=
+-\frac{dU}{dr}
+\frac{\mathbf{r}_{ij}}{r_{ij}}.
+$$
+
+For Lennard-Jones,
+
+$$
+\frac{dU}{dr}
+=
+4\epsilon
+\left[
+-12\frac{\sigma^{12}}{r^{13}}
++
+6\frac{\sigma^6}{r^7}
+\right].
+$$
+
+The force is repulsive at short distances and attractive at larger distances before decaying to zero.
+
+Newton's third law requires
+
+$$
+\mathbf{F}_{ij}=-\mathbf{F}_{ji}.
+$$
+
+Therefore, the net force in a closed periodic system should be approximately zero up to numerical roundoff.
+
+---
+
+## 10. Cutoff radius
+
+A direct pair calculation scales as $O(N^2)$. Since Lennard-Jones decays quickly, interactions are truncated beyond a cutoff radius $r_c$.
+
+A small cutoff is faster but less accurate. A large cutoff includes more neighbours but costs more. With periodic boundary conditions, the cutoff must satisfy
+
+$$
+r_c<\frac12\min(L_x,L_y,L_z).
+$$
+
+Otherwise, an atom may interact with more than one periodic image of the same neighbour.
+
+---
+
+## 11. Periodic boundary conditions
+
+A finite crystal has surfaces, and surface atoms have fewer neighbours. To approximate bulk material, periodic boundary conditions replicate the simulation cell infinitely.
+
+If an atom leaves one side of the box, it re-enters through the opposite side. Conceptually,
+
+$$
+x\rightarrow x\bmod L_x,
+\quad
+y\rightarrow y\bmod L_y,
+\quad
+z\rightarrow z\bmod L_z.
+$$
+
+This reduces surface effects and makes the cell behave as a representative piece of an infinite material.
+
+---
+
+## 12. Minimum image convention
+
+With periodic boundaries, each atom has infinitely many images. The minimum image convention uses only the closest image:
+
+$$
+\Delta\mathbf{r}
+\leftarrow
+\Delta\mathbf{r}
+-
+\mathbf{L}\,\mathrm{round}
+\left(
+\frac{\Delta\mathbf{r}}{\mathbf{L}}
+\right).
+$$
+
+This is valid when $r_c$ is smaller than half the shortest box length.
