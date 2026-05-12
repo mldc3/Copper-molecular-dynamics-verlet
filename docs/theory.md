@@ -81,13 +81,7 @@ Leapfrog and Verlet-type methods are better adapted to classical dynamics. They 
 Velocity-Verlet updates positions and velocities explicitly. First,
 
 $$
-\mathbf{r}_{n+1}
-=
-\mathbf{r}_n
-+
-\mathbf{v}_n\Delta t
-+
-\frac{1}{2}\mathbf{a}_n\Delta t^2.
+\mathbf{r}_{n+1} = \mathbf{r}_n + \mathbf{v}_n\Delta t + \frac{1}{2}\mathbf{a}_n\Delta t^2.
 $$
 
 Then the forces are recomputed at the new positions,
@@ -99,11 +93,7 @@ $$
 Finally, velocities are updated with the average acceleration,
 
 $$
-\mathbf{v}_{n+1}
-=
-\mathbf{v}_n
-+
-\frac{\Delta t}{2}
+\mathbf{v}_{n+1} = \mathbf{v}_n + \frac{\Delta t}{2}
 (\mathbf{a}_n+\mathbf{a}_{n+1}).
 $$
 
@@ -139,9 +129,7 @@ Starting from FCC is physically meaningful because it matches the equilibrium cr
 In a pair-potential approximation, the total potential energy is
 
 $$
-U_{\mathrm{tot}}
-=
-\frac12
+U_{\mathrm{tot}} = \frac12
 \sum_{i\neq j}U(r_{ij}),
 $$
 
@@ -162,10 +150,8 @@ Pair potentials are simple and transparent, which makes them useful for educatio
 The Lennard-Jones potential is
 
 $$
-U(r)=4\epsilon
-\left[
-\left(\frac{\sigma}{r}\right)^{12}
--
+U(r)=4\epsilon \left[
+\left(\frac{\sigma}{r}\right)^{12} -
 \left(\frac{\sigma}{r}\right)^6
 \right].
 $$
@@ -193,8 +179,7 @@ For the copper-like model used here, representative parameters are $\epsilon=0.1
 For a pair displacement $\mathbf{r}_{ij}$,
 
 $$
-\mathbf{F}_{ij}
-=
+\mathbf{F}_{ij} =
 -\frac{dU}{dr}
 \frac{\mathbf{r}_{ij}}{r_{ij}}.
 $$
@@ -202,14 +187,9 @@ $$
 For Lennard-Jones,
 
 $$
-\frac{dU}{dr}
-=
+\frac{dU}{dr} =
 4\epsilon
-\left[
--12\frac{\sigma^{12}}{r^{13}}
-+
-6\frac{\sigma^6}{r^7}
-\right].
+\left[ -12\frac{\sigma^{12}}{r^{13}} + 6\frac{\sigma^6}{r^7} \right].
 $$
 
 The force is repulsive at short distances and attractive at larger distances before decaying to zero.
@@ -263,8 +243,7 @@ With periodic boundaries, each atom has infinitely many images. The minimum imag
 $$
 \Delta\mathbf{r}
 \leftarrow
-\Delta\mathbf{r}
--
+\Delta\mathbf{r} -
 \mathbf{L}\,\mathrm{round}
 \left(
 \frac{\Delta\mathbf{r}}{\mathbf{L}}
