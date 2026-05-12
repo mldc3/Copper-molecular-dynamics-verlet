@@ -3,7 +3,7 @@
 This document describes how the simulation is executed computationally, step by step.
 
 ## 1. FCC initialization
-The system starts from an FCC crystal built by replicating the FCC basis over $(n_x,n_y,n_z)$ cells using lattice parameter $a$. This yields initial positions $\{\mathbf{r}_i\}_{i=1}^N$ and simulation box lengths from cell counts.
+The system starts from an FCC crystal built by replicating the FCC basis over $(n_x,n_y,n_z)$ cells using lattice parameter $a$. This yields initial positions ${r_i}_{i=1}^N$ and simulation box lengths from cell counts.
 
 ## 2. Pair-distance computation
 At each force evaluation, pair displacements and pair distances $r_{ij}$ are computed. Distances on the diagonal are excluded to avoid self-interaction terms.
