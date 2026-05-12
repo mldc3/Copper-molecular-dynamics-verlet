@@ -108,14 +108,3 @@ trajectories/
   examples/
 raw_upload/
 ```
-
-## 13. Skills demonstrated
-- Molecular dynamics modeling and interpretation
-- Velocity-Verlet numerical integration
-- Periodic boundary condition handling
-- Minimum image distance evaluation
-- Thermodynamic and structural post-analysis
-- Scientific documentation and reproducible repository organization
-
-## 14. Author
-Lourdes Domínguez Cacho (coursework project, reorganized repository and technical documentation updates).
